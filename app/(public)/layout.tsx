@@ -1,6 +1,6 @@
 import React from "react";
 import Navbar from "@/components/shared/navbar/page";
-import Footer from "@/components/shared/footer/page";
+a import FooterSection from "@/components/shared/footer/page";
 
 const PublicLayout = ({
   children,
@@ -13,7 +13,7 @@ const PublicLayout = ({
 
       {children}
 
-      <Footer />
+      <FooterSection />
     </div>
   );
 };
