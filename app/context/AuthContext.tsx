@@ -1,4 +1,12 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+"use client";
+
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 export type Role = "guest" | "student" | "mentor" | "faculty" | "admin";
 
@@ -14,6 +22,8 @@ interface AuthContextValue {
   login: (user: AuthUser) => void;
   logout: () => void;
   isLoggedIn: boolean;
+  /** true while the initial localStorage hydration is in progress */
+  hydrated: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue>({
@@ -21,30 +31,48 @@ const AuthContext = createContext<AuthContextValue>({
   login: () => {},
   logout: () => {},
   isLoggedIn: false,
+  hydrated: false,
 });
 
+const STORAGE_KEY = "uiu_auth";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(() => {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  // hydrated prevents a flash of the logged-out state on first paint
+  const [hydrated, setHydrated] = useState(false);
+
+  // Runs only in the browser — safe for SSR/SSG
+  useEffect(() => {
     try {
-      const stored = localStorage.getItem("uiu_auth");
-      return stored ? JSON.parse(stored) : null;
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) setUser(JSON.parse(stored));
     } catch {
-      return null;
+      // malformed JSON — ignore and stay logged out
+    } finally {
+      setHydrated(true);
     }
-  });
+  }, []);
 
   const login = (u: AuthUser) => {
     setUser(u);
-    localStorage.setItem("uiu_auth", JSON.stringify(u));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(u));
+    } catch {
+      // storage quota or private-browsing restriction — silently continue
+    }
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("uiu_auth");
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {}
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoggedIn: !!user }}>
+    <AuthContext.Provider
+      value={{ user, login, logout, isLoggedIn: !!user, hydrated }}
+    >
       {children}
     </AuthContext.Provider>
   );

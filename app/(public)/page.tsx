@@ -4,8 +4,6 @@ import MentorsSection from "@/components/home/MentorsSection";
 import EventsSection from "@/components/home/EventsSection";
 import StoriesSection from "@/components/home/StoriesSection";
 import CTASection from "@/components/home/CTASection";
-import FooterSection from "@/components/shared/footer/page";
-import Navbar from "@/components/shared/navbar/page";
 
 export default function HomePage() {
   return (
@@ -16,7 +14,7 @@ export default function HomePage() {
       <EventsSection />
       <StoriesSection />
       <CTASection />
-      
+   
     </div>
   );
 }
